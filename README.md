@@ -14,4 +14,4 @@ Once the IP has been changed in DNS SERVER, it restarts with the new IPs
 #TaskManager
 Create a TaskManager with root user. Put the desired periodicity (I recommend 1 hour minimum while the server restarts).
 Add line script :
-python3 /volume1/homes/User//PyZoneDNS.py
+python3 /volume1/homes/User/PyZoneDNS.py
