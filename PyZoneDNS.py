@@ -16,13 +16,16 @@ except socket.gaierror:
     print('Error: Unable to resolve the IP address for my2.dynamic.host.')
     exit()
 
+# Flag to keep track of whether any IP addresses have been changed
+ip_changed = False
+
 # Check if my.dynamic.host is responding
 try:
     socket.create_connection((myhost_ip, 80), timeout=1)
 except socket.error:
     print('my.dynamic.host do not answer.')
 else:
-    # Ouvrir le fichier de zone DNS et le lire en mémoire
+    # Open the DNS zone file and read it into memory
     with open('/volume1/@appstore/DNSServer/named/etc/zone/master/mydomain.com', 'r') as f:
         lines = f.readlines()
 
@@ -39,15 +42,8 @@ else:
 
                 # Edit line in DNS zone file for ns2.mydomain.com
                 lines[i] = 'ns2.mydomain.com.\t86400\tA\t{}\n'.format(myhost_ip)
+                ip_changed = True
 
-                # Write changes to DNS zone file
-                with open('/volume1/@appstore/DNSServer/named/etc/zone/master/mydomain.com', 'w') as f:
-                    f.writelines(lines)
-
-                # Restart the DNS Server service
-                os.system('synoservice --restart pkgctl-DNSServer')
-                print('The DNS Server service is restarted...')
-                print('The IP addresses have been changed successfully.')
                 break
 
             else:
@@ -76,16 +72,24 @@ else:
 
                 # Edit line in DNS zone file for ns1.mydomain.com
                 lines[i] = 'ns1.mydomain.com.\t86400\tA\t{}\n'.format(myhost2_ip)
+                ip_changed = True
 
-                # Write changes to DNS zone file
-                with open('/volume1/@appstore/DNSServer/named/etc/zone/master/mydomain.com', 'w') as f:
-                    f.writelines(lines)
-
-                # Restart the DNS Server service
-                os.system('synoservice --restart pkgctl-DNSServer')
-                print('The DNS Server service is restarted...')
-                print('The IP addresses have been changed successfully.')
                 break
 
             else:
                 print('The IP addresses for ns1.mydomain.com are identical:', myhost2_ip)
+
+# Check if any IP address has been changed
+if ip_changed:
+    # Write changes to DNS zone file
+    with open('/volume1/@appstore/DNSServer/named/etc/zone/master/mydomain.com', 'w') as f:
+        f.writelines(lines)
+
+    # Restart the DNS Server service
+    os.system('synoservice --restart pkgctl-DNSServer')
+    print('The DNS Server service has been restarted...')
+    print('The IP addresses have been changed successfully.')
+else:
+    print('No IP address has been changed.')
+
+
